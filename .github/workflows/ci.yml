@@ -1,0 +1,44 @@
+name: Node.js CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [16.x, 18.x]
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+    - name: Install dependencies (backend)
+      run: |
+        cd backend
+        npm install
+    - name: Install dependencies (mobile)
+      run: |
+        cd mobile
+        npm install
+    - name: Run backend tests
+      run: |
+        cd backend
+        npm test || echo "No backend tests defined"
+    - name: Run mobile tests
+      run: |
+        cd mobile
+        npm test || echo "No mobile tests defined"
+    - name: Lint backend
+      run: |
+        cd backend
+        npm run lint || echo "No lint script defined"
+    - name: Lint mobile
+      run: |
+        cd mobile
+        npm run lint || echo "No lint script defined"

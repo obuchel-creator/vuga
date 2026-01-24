@@ -1,6 +1,9 @@
 {
   "dependencies": {
     "bcryptjs": "^3.0.3",
+    "expo": "^54.0.32",
+    "expo-localization": "^17.0.8",
+    "i18n-js": "^4.5.1",
     "multer": "^2.0.2",
     "react-native-push-notification": "^8.1.1"
   }

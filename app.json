@@ -1,0 +1,10 @@
+{
+  "expo": {
+    "icon": "./mobile/assets/logo.png",
+    "extra": {
+      "eas": {
+        "projectId": "64b71de9-08ba-476e-bbab-15b6067b19d7"
+      }
+    }
+  }
+}

@@ -4,5 +4,6 @@ CREATE TABLE IF NOT EXISTS users (
   email VARCHAR(255) UNIQUE,
   phone VARCHAR(32) UNIQUE,
   password VARCHAR(255) NOT NULL,
+  role ENUM('admin','moderator','user') DEFAULT 'user',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

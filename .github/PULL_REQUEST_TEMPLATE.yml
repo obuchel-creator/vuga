@@ -1,0 +1,31 @@
+name: Pull Request
+
+description: Suggest a new feature, bug fix, or improvement
+
+title: "[PR] <title>"
+
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Please describe your changes in detail.
+      placeholder: What does this PR do?
+    validations:
+      required: true
+  - type: textarea
+    id: testing
+    attributes:
+      label: Testing
+      description: How did you test your changes?
+      placeholder: Steps, screenshots, or test results
+    validations:
+      required: true
+  - type: textarea
+    id: issues
+    attributes:
+      label: Related Issues
+      description: List any related issues or PRs
+      placeholder: "Closes #123"
+    validations:
+      required: false
