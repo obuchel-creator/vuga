@@ -3,7 +3,7 @@ This folder will contain the source code for the mobile application built with R
 
 ## Initial Setup
 - Use React Native CLI or Expo to initialize the app.
-- Integrate Google Maps for traffic visualization.
+- Integrate Google Maps for Vuga visualization.
 - Connect to the backend via REST API.
 
 ## Structure
@@ -21,4 +21,4 @@ This folder will contain the source code for the mobile application built with R
 # Next Steps
 - Add Google Maps integration
 - Implement API calls to backend
-- UI for traffic and route suggestions
+- UI for Vuga and route suggestions
