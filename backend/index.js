@@ -1,5 +1,6 @@
 const express = require('express');
-const mysql = require('mysql2');
+const mysql = require('mysql2'); // This line will remain for compatibility
+const db = require('./db');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const multer = require('multer');
@@ -36,20 +37,7 @@ app.post('/api/route-suggestions', (req, res) => {
   res.json({ route });
 });
 
-const db = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  password: '', // Set your MySQL root password
-  database: 'kampala_traffic'
-});
-
-db.connect((err) => {
-  if (err) {
-    console.error('MySQL connection error:', err);
-  } else {
-    console.log('Connected to MySQL database');
-  }
-});
+// db connection is now handled in db.js
 
 // Set up multer for photo uploads
 const storage = multer.diskStorage({
@@ -99,6 +87,7 @@ app.post('/api/reports', upload.single('photo'), (req, res) => {
   );
 });
 
+
 // Upvote a report
 app.post('/api/reports/:id/upvote', (req, res) => {
   const { id } = req.params;
@@ -120,6 +109,32 @@ app.post('/api/reports/:id/downvote', (req, res) => {
       return res.status(500).json({ error: 'Failed to downvote.' });
     }
     res.json({ success: true });
+  });
+});
+
+// COMMENTS: Get comments for a report
+app.get('/api/reports/:id/comments', (req, res) => {
+  const { id } = req.params;
+  db.query('SELECT * FROM comments WHERE report_id = ? ORDER BY created_at ASC', [id], (err, results) => {
+    if (err) {
+      console.error('DB error:', err);
+      return res.status(500).json({ error: 'Failed to fetch comments.' });
+    }
+    res.json(results);
+  });
+});
+
+// COMMENTS: Add a comment to a report
+app.post('/api/reports/:id/comments', (req, res) => {
+  const { id } = req.params;
+  const { text, user_id } = req.body;
+  if (!isNonEmptyString(text)) return res.status(400).json({ error: 'Comment text required.' });
+  db.query('INSERT INTO comments (report_id, user_id, text) VALUES (?, ?, ?)', [id, user_id || null, text], (err, result) => {
+    if (err) {
+      console.error('DB error:', err);
+      return res.status(500).json({ error: 'Failed to add comment.' });
+    }
+    res.json({ id: result.insertId, report_id: id, user_id: user_id || null, text });
   });
 });
 
@@ -213,6 +228,47 @@ function sendPush(tokens, message, res) {
 }
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+
+// --- Admin Broadcasts ---
+// POST /api/admin/broadcast { message, targetRole (optional) }
+app.post('/api/admin/broadcast', async (req, res) => {
+  const { message, targetRole } = req.body;
+  if (!message) return res.status(400).json({ error: 'Message required' });
+  let targets = [];
+  if (targetRole) {
+    db.query('SELECT id FROM users WHERE role = ?', [targetRole], (err, results) => {
+      if (err) return res.status(500).json({ error: 'DB error' });
+      targets = results.map(u => userPushTokens[u.id]).filter(Boolean);
+      sendPush(targets, message, res);
+    });
+    return;
+  }
+  // Broadcast to all users
+  targets = Object.values(userPushTokens);
+  sendPush(targets, message, res);
+});
+
+// --- User-to-User Messaging ---
+// In-memory message store for demo (replace with DB in prod)
+const userMessages = {};
+// POST /api/messages/send { from, to, text }
+app.post('/api/messages/send', (req, res) => {
+  const { from, to, text } = req.body;
+  if (!from || !to || !text) return res.status(400).json({ error: 'Missing fields' });
+  if (!userMessages[to]) userMessages[to] = [];
+  userMessages[to].push({ from, text, timestamp: Date.now() });
+  // Optionally send push notification
+  if (userPushTokens[to]) {
+    sendPush([userPushTokens[to]], `New message from user ${from}: ${text}`);
+  }
+  res.json({ success: true });
+});
+// GET /api/messages/inbox/:userId
+app.get('/api/messages/inbox/:userId', (req, res) => {
+  const { userId } = req.params;
+  res.json(userMessages[userId] || []);
+});
+
 // Admin dashboard routes
 const adminRoutes = require('./admin');
 app.use('/admin', adminRoutes);
@@ -220,7 +276,12 @@ app.use('/admin', adminRoutes);
 // Centralized error handler (should be last middleware)
 app.use(errorHandler);
 
+
 const PORT = 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
+
+module.exports = app;

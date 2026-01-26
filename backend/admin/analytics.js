@@ -1,4 +1,4 @@
-// Simple analytics endpoint for traffic trends
+// Simple analytics endpoint for Vuga trends
 const express = require('express');
 const router = express.Router();
 const db = require('../db');

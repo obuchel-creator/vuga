@@ -21,4 +21,4 @@ This folder will contain the backend server built with Node.js and Express, conn
 # Next Steps
 - Set up Express server
 - Connect to MySQL database
-- Implement endpoints for traffic data, user reports, and route suggestions
+- Implement endpoints for Vuga data, user reports, and route suggestions

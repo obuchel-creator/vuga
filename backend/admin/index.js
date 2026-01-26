@@ -1,4 +1,4 @@
-// Simple Express admin dashboard for traffic reports
+// Simple Express admin dashboard for Vuga reports
 const express = require('express');
 const router = express.Router();
 const db = require('../db'); // Assumes db.js exports MySQL connection
