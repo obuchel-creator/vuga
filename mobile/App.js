@@ -19,7 +19,7 @@ import * as Notifications from 'expo-notifications';
 // Localization setup
 i18n.translations = {
   en: {
-    traffic: 'Vuga',
+    traffic: 'VugaSafe Pro',
     location: 'Location',
     description: 'Description',
     severity: 'Severity',
@@ -164,7 +164,7 @@ export default function App() {
     return (
       <SafeAreaProvider>
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: VUGA_COLORS.light.background }}>
-          <Text style={{ color: VUGA_COLORS.light.primary, fontSize: 20 }}>Loading...</Text>
+          <Text style={{ color: VUGA_COLORS.light.primary, fontSize: 20 }}>Loading... (OTA Test)</Text>
         </View>
       </SafeAreaProvider>
     );
