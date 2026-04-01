@@ -8,8 +8,13 @@ const path = require('path');
 const fs = require('fs');
 
 
-const errorHandler = require('./errorHandler');
-const { isNonEmptyString, isValidSeverity, isValidLatLng } = require('./validation');
+
+
+const payments = require('./payments');
+
+// Payments API
+app.post('/pay', payments.pay);
+app.get('/payment-status', payments.status);
 
 const app = express();
 app.use(cors());
@@ -125,10 +130,13 @@ app.get('/api/reports/:id/comments', (req, res) => {
 });
 
 // COMMENTS: Add a comment to a report
+// Add a comment to a report (with input validation)
 app.post('/api/reports/:id/comments', (req, res) => {
   const { id } = req.params;
   const { text, user_id } = req.body;
+  if (!id || isNaN(Number(id))) return res.status(400).json({ error: 'Invalid report id.' });
   if (!isNonEmptyString(text)) return res.status(400).json({ error: 'Comment text required.' });
+  if (user_id && isNaN(Number(user_id))) return res.status(400).json({ error: 'Invalid user id.' });
   db.query('INSERT INTO comments (report_id, user_id, text) VALUES (?, ?, ?)', [id, user_id || null, text], (err, result) => {
     if (err) {
       console.error('DB error:', err);

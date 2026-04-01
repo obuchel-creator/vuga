@@ -1,0 +1,13 @@
+-- payments.sql: Table for storing user payments
+CREATE TABLE IF NOT EXISTS payments (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  userId INT NOT NULL,
+  provider ENUM('mtn','airtel') NOT NULL,
+  amount INT NOT NULL,
+  expiry DATETIME NOT NULL,
+  paid BOOLEAN DEFAULT 0,
+  transactionId VARCHAR(128) UNIQUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;

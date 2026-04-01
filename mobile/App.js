@@ -4,6 +4,7 @@ import { Modal, TouchableOpacity, Appearance, Animated, useColorScheme, ScrollVi
 import { VUGA_COLORS } from './src/vugaColors';
 import AppNavigator from './src/AppNavigator';
 import ProfileScreen from './src/ProfileScreen';
+import PaymentScreen from './src/PaymentScreen';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as Localization from 'expo-localization';
 import i18n from 'i18n-js';
@@ -115,6 +116,9 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [expoPushToken, setExpoPushToken] = useState(null);
+  const [paid, setPaid] = useState(false);
+  const [rolloutEligible, setRolloutEligible] = useState(true); // default true for backward compatibility
+  const [rollbackVersion, setRollbackVersion] = useState(null);
 
   // Load user from storage on mount
   useEffect(() => {
@@ -154,10 +158,39 @@ export default function App() {
   }, [user, expoPushToken]);
 
   // Handler to update user after login/register/logout
-  const handleAuthChange = (newUser) => {
+  const handleAuthChange = async (newUser) => {
     setUser(newUser);
-    if (!newUser) AsyncStorage.removeItem('user');
-    else AsyncStorage.setItem('user', JSON.stringify(newUser));
+    if (!newUser) {
+      AsyncStorage.removeItem('user');
+      setPaid(false);
+      setRolloutEligible(true);
+      setRollbackVersion(null);
+      return;
+    }
+    await AsyncStorage.setItem('user', JSON.stringify(newUser));
+    // Check payment status after login
+    try {
+      const payRes = await axios.get(`http://192.168.1.111:5000/pay/status/${newUser.id}`);
+      setPaid(payRes.data.paid);
+    } catch {
+      setPaid(false);
+    }
+    // Check rollout eligibility for current version
+    let appVersion;
+    try {
+      appVersion = require('./app.json').runtimeVersion || require('./app.json').version;
+      const rolloutRes = await axios.get(`http://192.168.1.111:5000/api/rollout-status?version=${appVersion}&userId=${newUser.id}`);
+      setRolloutEligible(!!rolloutRes.data.rollout);
+    } catch {
+      setRolloutEligible(true); // fallback to true if error
+    }
+    // Check rollback status for current version
+    try {
+      const rollbackRes = await axios.get(`http://192.168.1.111:5000/api/rollback-status?version=${appVersion}`);
+      setRollbackVersion(rollbackRes.data.rollback && rollbackRes.data.rollback !== false ? rollbackRes.data.rollback : null);
+    } catch {
+      setRollbackVersion(null);
+    }
   };
 
   if (loading) {
@@ -172,10 +205,24 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-      {user ? (
-        <AppNavigator user={user} onAuthChange={handleAuthChange} />
-      ) : (
+      {!user ? (
         <ProfileScreen onAuthChange={handleAuthChange} />
+      ) : !paid ? (
+        <PaymentScreen userId={user.id} onPaymentSuccess={() => setPaid(true)} />
+      ) : rollbackVersion ? (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: VUGA_COLORS.light.background }}>
+          <Text style={{ color: VUGA_COLORS.light.primary, fontSize: 20, textAlign: 'center', margin: 24 }}>
+            This version has been rolled back. Please update to version {rollbackVersion} to continue using the app.
+          </Text>
+        </View>
+      ) : !rolloutEligible ? (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: VUGA_COLORS.light.background }}>
+          <Text style={{ color: VUGA_COLORS.light.primary, fontSize: 20, textAlign: 'center', margin: 24 }}>
+            This update is not yet available for your account. Please check back soon!
+          </Text>
+        </View>
+      ) : (
+        <AppNavigator user={user} onAuthChange={handleAuthChange} />
       )}
     </SafeAreaProvider>
   );

@@ -2,6 +2,7 @@
   "expo": {
     "name": "VugaSafe",
     "slug": "VugaSafe",
+    "owner": "obuchel80",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/logo.png",
@@ -15,7 +16,11 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.obuchel80.VugaSafe",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -27,19 +32,19 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "extra": {
-      "eas": {
-        "projectId": "9b4260e1-af51-483b-b035-391a42b1890a"
-      }
-    },
     "runtimeVersion": {
       "policy": "appVersion"
     },
-    "updates": {
-      "url": "https://u.expo.dev/9b4260e1-af51-483b-b035-391a42b1890a"
-    },
     "plugins": [
       "expo-localization"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "19c904c2-e612-49a4-95d0-f4254d82dfb3"
+      }
+    },
+    "updates": {
+      "url": "https://u.expo.dev/19c904c2-e612-49a4-95d0-f4254d82dfb3"
+    }
   }
 }

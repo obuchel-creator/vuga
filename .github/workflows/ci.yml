@@ -42,3 +42,13 @@ jobs:
       run: |
         cd mobile
         npm run lint || echo "No lint script defined"
+
+    # Expo EAS CLI and OTA update automation
+    - name: Install EAS CLI
+      run: npm install -g eas-cli
+    - name: EAS Update (Expo OTA)
+      env:
+        EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      run: |
+        cd mobile
+        eas update --branch main --non-interactive --message "CI: Auto OTA update on push"

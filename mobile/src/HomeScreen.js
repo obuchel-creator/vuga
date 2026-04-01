@@ -1,11 +1,32 @@
 
-import React from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { VUGA_COLORS } from './vugaColors';
 import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
 
 const HomeScreen = () => {
   const navigation = useNavigation();
+  const [betaEnabled, setBetaEnabled] = useState(false);
+  const [checkingFlag, setCheckingFlag] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      setCheckingFlag(true);
+      try {
+        const userStr = await AsyncStorage.getItem('user');
+        const user = userStr ? JSON.parse(userStr) : null;
+        const appVersion = require('../app.json').runtimeVersion || require('../app.json').version;
+        const res = await axios.get(`http://192.168.1.111:5000/api/feature-flag-status?flag=betaFeature&userId=${user?.id || ''}&version=${appVersion}`);
+        setBetaEnabled(!!res.data.enabled);
+      } catch {
+        setBetaEnabled(false);
+      }
+      setCheckingFlag(false);
+    })();
+  }, []);
+
   return (
     <View style={styles.container}>
       <Image source={require('../assets/logo.png')} style={styles.logo} />
@@ -25,6 +46,15 @@ const HomeScreen = () => {
           </TouchableOpacity>
         </View>
       </View>
+      {checkingFlag ? (
+        <ActivityIndicator size="small" color={VUGA_COLORS.light.primary} style={{ marginTop: 16 }} />
+      ) : betaEnabled ? (
+        <View style={{ marginTop: 24, padding: 12, backgroundColor: '#e0f7fa', borderRadius: 8 }}>
+          <Text style={{ color: VUGA_COLORS.light.primary, fontWeight: 'bold' }}>
+            🎉 Beta Feature Enabled! Try our new experimental feature.
+          </Text>
+        </View>
+      ) : null}
     </View>
   );
 };
