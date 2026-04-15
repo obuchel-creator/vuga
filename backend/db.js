@@ -1,20 +1,11 @@
-// db.js - Exports the MySQL connection for use in admin and other modules
-const mysql = require('mysql2');
+// db.js - Exports a pg Pool configured via DATABASE_URL
+const { Pool } = require('pg');
 
-const db = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  password: '', // Set your MySQL root password
-  database: 'vuga',
-  charset: 'utf8mb4' // Fixes encoding issues
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.DATABASE_URL && !process.env.DATABASE_URL.includes('localhost')
+    ? { rejectUnauthorized: false }
+    : false,
 });
 
-db.connect((err) => {
-  if (err) {
-    console.error('MySQL connection error:', err);
-  } else {
-    console.log('Connected to MySQL database');
-  }
-});
-
-module.exports = db;
+module.exports = pool;
