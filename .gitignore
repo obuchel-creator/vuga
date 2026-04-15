@@ -1,5 +1,6 @@
 # Node
 node_modules/
+**/node_modules/
 *.log
 npm-debug.log*
 yarn-debug.log*
@@ -34,6 +35,7 @@ dist/
 
 # Misc
 uploads/
+backend/uploads/
 coverage/
 
 # Ignore SQLite/other local DBs
